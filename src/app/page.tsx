@@ -1,65 +1,163 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Cpu, Dumbbell, Users, BookOpen } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { generateChallenge, type Challenge } from "./actions/generate-dare";
+import { ChallengeDisplay } from "@/components/challenge-display";
+
+const categories = [
+  {
+    id: "tech",
+    label: "Tech",
+    icon: Cpu,
+    description: "Coding, gadgets, and future tech.",
+    color: "bg-blue-500/10 text-blue-500",
+  },
+  {
+    id: "fitness",
+    label: "Fitness",
+    icon: Dumbbell,
+    description: "Workouts, nutrition, and health.",
+    color: "bg-green-500/10 text-green-500",
+  },
+  {
+    id: "social",
+    label: "Social",
+    icon: Users,
+    description: "Connect, events, and community.",
+    color: "bg-purple-500/10 text-purple-500",
+  },
+  {
+    id: "learning",
+    label: "Learning",
+    icon: BookOpen,
+    description: "Books, courses, and skills.",
+    color: "bg-orange-500/10 text-orange-500",
+  },
+];
 
 export default function Home() {
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [challenge, setChallenge] = useState<Challenge | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleCategorySelect = async (categoryId: string) => {
+    if (loading) return;
+    setSelectedCategory(categoryId);
+    setLoading(true);
+    setChallenge(null);
+
+    const category = categories.find((c) => c.id === categoryId);
+    if (!category) return;
+
+    try {
+      const result = await generateChallenge(category.label);
+      setChallenge(result);
+    } catch (error) {
+      console.error("Failed to generate challenge:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <div className="flex min-h-screen flex-col items-center justify-center bg-background p-8 font-sans transition-colors duration-300">
+      <div className="flex w-full max-w-5xl flex-col items-center gap-12 text-center">
+        {/* Hero Section */}
+        <div className="space-y-4">
+          <h1 className="text-6xl font-extrabold tracking-tight text-foreground sm:text-7xl lg:text-8xl">
+            Dare <span className="text-primary">Yourself</span>
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="mx-auto max-w-2xl text-xl text-muted-foreground sm:text-2xl">
+            Escape the boredom loop. Choose your path and challenge your limits everyday.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        {/* Challenge Display Area */}
+        <div className="w-full flex justify-center min-h-[400px]">
+          {loading ? (
+            <div className="w-full max-w-lg space-y-4">
+              <div className="space-y-2">
+                <Skeleton className="h-8 w-1/3" />
+                <Skeleton className="h-4 w-1/4" />
+              </div>
+              <Skeleton className="h-[200px] w-full rounded-xl" />
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+              </div>
+            </div>
+          ) : challenge ? (
+            <ChallengeDisplay challenge={challenge} />
+          ) : (
+            /* Category Grid - Only show when no challenge is displayed or maybe show always but dim? 
+               User request: "When a category card is clicked... store selection" 
+               Refined UX: Start with Grid. When clicked, show loading then Challenge. 
+               Maybe hide grid? Or move it? 
+               If I replace, how to go back?
+               let's show Grid if !challenge && !loading.
+               Or show Grid always but maybe smaller?
+               Let's keep Grid VISIBLE but maybe interactive state handled.
+               Actually, let's just render the grid if !challenge.
+            */
+            <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {categories.map((category) => {
+                const Icon = category.icon;
+                const isSelected = selectedCategory === category.id;
+
+                return (
+                  <Card
+                    key={category.id}
+                    onClick={() => handleCategorySelect(category.id)}
+                    className={cn(
+                      "cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-lg",
+                      isSelected
+                        ? "ring-4 ring-primary ring-opacity-50 border-primary"
+                        : "border-border opacity-80 hover:opacity-100"
+                    )}
+                  >
+                    <CardHeader className="flex flex-col items-center gap-4 py-8">
+                      <div className={cn("rounded-full p-4 transition-colors", category.color)}>
+                        <Icon className="h-8 w-8" />
+                      </div>
+                      <CardTitle className="text-2xl font-bold">{category.label}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground">{category.description}</p>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
         </div>
-      </main>
+
+        {/* Reset / Selection Status */}
+        <div className="mt-8 h-8 font-medium text-foreground">
+          {challenge && (
+            <button
+              onClick={() => {
+                setChallenge(null);
+                setSelectedCategory(null);
+              }}
+              className="text-primary hover:underline underline-offset-4"
+            >
+              Choose another category
+            </button>
+          )}
+          {!challenge && !loading && (
+            selectedCategory ? (
+              <span>Generating for: <span className="capitalize text-primary">{categories.find(c => c.id === selectedCategory)?.label}</span>...</span>
+            ) : (
+              <span className="text-muted-foreground text-sm opacity-50">Select a category using the cards above</span>
+            )
+          )}
+        </div>
+      </div>
     </div>
   );
 }
