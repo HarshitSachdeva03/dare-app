@@ -14,15 +14,16 @@ const ChallengeSchema = z.object({
 
 export type Challenge = z.infer<typeof ChallengeSchema>;
 
-export async function generateChallenge(category: string, userContext: string = "") {
+export async function generateChallenge(category: string, userContext: string = "", difficulty: string = "Medium") {
     "use server";
 
     const prompt = `Generate a fun and engaging "dare" challenge for the category: "${category}".
   Context specifically for this user: "${userContext}".
+  Difficulty Level: "${difficulty}".
   The challenge should be actionable, exciting, and help them break their boredom loop.`;
 
     const { object } = await generateObject({
-        model: google("gemini-2.0-flash"),
+        model: google("gemini-flash-latest"),
         schema: ChallengeSchema,
         prompt: prompt,
     });

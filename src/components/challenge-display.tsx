@@ -7,10 +7,11 @@ import type { Challenge } from "@/app/actions/generate-dare";
 
 interface ChallengeDisplayProps {
     challenge: Challenge;
-    onAccept?: () => void;
+    mode?: "preview" | "ongoing" | "completed";
+    onAction?: () => void;
 }
 
-export function ChallengeDisplay({ challenge, onAccept }: ChallengeDisplayProps) {
+export function ChallengeDisplay({ challenge, mode = "preview", onAction }: ChallengeDisplayProps) {
     const difficultyColor = {
         Easy: "bg-green-500 hover:bg-green-600 border-transparent",
         Medium: "bg-yellow-500 hover:bg-yellow-600 border-transparent",
@@ -18,7 +19,10 @@ export function ChallengeDisplay({ challenge, onAccept }: ChallengeDisplayProps)
     };
 
     return (
-        <Card className="w-full max-w-lg border-2 shadow-xl animate-in fade-in zoom-in duration-300">
+        <Card className={cn(
+            "w-full max-w-lg border-2 shadow-xl animate-in fade-in zoom-in duration-300",
+            mode === "completed" && "opacity-75 border-muted"
+        )}>
             <CardHeader className="space-y-4">
                 <div className="flex items-center justify-between">
                     <Badge
@@ -57,9 +61,22 @@ export function ChallengeDisplay({ challenge, onAccept }: ChallengeDisplayProps)
                 </div>
             </CardContent>
             <CardFooter>
-                <Button onClick={onAccept} className="w-full text-lg h-12 shadow-lg hover:shadow-xl transition-all" size="lg">
-                    Accept Challenge
-                </Button>
+                {mode === "preview" && (
+                    <Button onClick={onAction} className="w-full text-lg h-12 shadow-lg hover:shadow-xl transition-all" size="lg">
+                        Accept Challenge
+                    </Button>
+                )}
+                {mode === "ongoing" && (
+                    <Button onClick={onAction} className="w-full text-lg h-12 shadow-lg hover:shadow-xl transition-all bg-green-600 hover:bg-green-700" size="lg">
+                        I Did It! 🎉
+                    </Button>
+                )}
+                {mode === "completed" && (
+                    <div className="w-full text-center font-bold text-green-600 flex items-center justify-center gap-2">
+                        <CheckCircle2 className="h-6 w-6" />
+                        Challenge Completed
+                    </div>
+                )}
             </CardFooter>
         </Card>
     );
